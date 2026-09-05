@@ -1,0 +1,32 @@
+You receive the combined fact extractions from all chunks of a single Romanian
+city council meeting (several JSON arrays, one per chunk, concatenated). They
+overlap and are fragmented because the meeting was split into chunks.
+
+Your job: merge them into ONE clean, de-duplicated, ordered list of the meeting's
+agenda items and decisions.
+
+Return ONLY a JSON array (no prose, no markdown, no code fences), same shape as
+the input items:
+
+[
+  {
+    "topic": "...",
+    "details": "...",
+    "amounts": "...",
+    "beneficiaries": "...",
+    "decision": "...",
+    "vote": { "pentru": N, "impotriva": N, "abtineri": N } | null,
+    "names": ["..."]
+  }
+]
+
+Rules:
+- Merge fragments that clearly describe the SAME agenda item into one entry,
+  keeping the most complete details. Remove duplicates.
+- Preserve every distinct agenda item — do not drop topics.
+- Keep "vote" only when an explicit vote count exists in the input; otherwise
+  null. Never invent or average numbers.
+- Correct people's names using the council reference list below. Do not invent
+  names that are not on the list.
+- Keep the natural order in which items were discussed where possible.
+- Do NOT add commentary or new facts. Output strictly valid JSON, in Romanian.

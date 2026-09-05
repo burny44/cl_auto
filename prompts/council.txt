@@ -1,0 +1,22 @@
+Reference list of the Slănic local council. Use it ONLY to correct names that
+appear incomplete, misspelled, or garbled in the speech-to-text transcript.
+When a name is a close phonetic or partial match to one below, replace it with
+the correct full name. Never invent names that are not on this list.
+
+Council members (consilieri):
+- Alionte Gheorghe Georgel
+- Anghelache Constantin
+- Bădulescu Cristian Dănuț
+- Baicu Aur Mihail
+- Bizineche Paul
+- Burnescu Florinel
+- Chipeșiu Florinel
+- Gaftoi Alexandru
+- Gortoescu Mihăiță Ioan
+- Pătrulescu Alina Elena
+
+Deputy mayor (viceprimar):
+- Grigore Constantin Dan
+
+Mayor (primar):
+- Costea Daneluș

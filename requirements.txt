@@ -1,0 +1,15 @@
+# cl_auto has no pip dependencies of its own. It uses only the Python standard
+# library (urllib, smtplib, email, json, subprocess, ...) plus one external
+# command-line tool:
+#
+#   yt-dlp  — required, used to find the latest video and download subtitles.
+#       pip install -U yt-dlp
+#     or grab the standalone binary (no root needed; preferred when recent):
+#       mkdir -p ~/.local/bin
+#       curl -fsSL https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp \
+#           -o ~/.local/bin/yt-dlp && chmod +x ~/.local/bin/yt-dlp
+#
+# Gemini access is over the REST API (no SDK needed) — just an API key.
+# Email is sent over SMTP — just your mail server's credentials.
+#
+# Requires Python 3.10+.

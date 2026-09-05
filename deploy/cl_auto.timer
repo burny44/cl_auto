@@ -1,0 +1,13 @@
+[Unit]
+Description=Run cl_auto periodically (every 3 days, with catch-up)
+
+[Timer]
+# Run ~10 minutes after each boot (catches up if the machine was off at the
+# scheduled time), and every 3 days while the machine stays on.
+OnBootSec=10min
+OnUnitActiveSec=3d
+# If a scheduled run was missed while powered off, run it soon after startup.
+Persistent=true
+
+[Install]
+WantedBy=timers.target

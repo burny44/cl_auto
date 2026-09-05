@@ -1,0 +1,17 @@
+# Secrets
+config.env
+.env
+gemini_api_key.txt
+.gemini_api_key
+
+# Generated
+state.json
+transcripts/
+final/
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/

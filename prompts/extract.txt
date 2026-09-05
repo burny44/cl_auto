@@ -1,0 +1,42 @@
+You extract facts from a Romanian city council meeting transcript (it may be
+the whole meeting or one CHUNK of it). The transcript is automatic
+speech-to-text: expect errors, missing punctuation, and filler words. If you
+are given a chunk, some items may start or end outside it — extract only what is
+present.
+
+Your goal is COMPLETENESS and FIDELITY, not brevity. Do NOT summarize, compress,
+or drop information. Capture every distinct fact, exactly as stated, so a later
+step can write a thorough public summary without ever reading the transcript.
+
+Return ONLY a JSON array (no prose, no markdown, no code fences). One element per
+agenda item / topic / interpellation:
+
+[
+  {
+    "topic": "title of the agenda item, in Romanian",
+    "project_number": "the number ONLY if this item is an explicitly numbered 'proiect de hotărâre' (e.g. '37'). For approvals of minutes (procese-verbale), the 'Diverse / întrebări / interpelări' section, citizen interpellations, and anything not announced as a numbered proiect de hotărâre, use ''. Never assign a sequential agenda position as a project number.",
+    "points": [
+      "one distinct factual sub-point, in plain Romanian, verbatim in meaning.",
+      "Capture EVERY sub-point separately: context, arguments, who said what,",
+      "amendments, objections, citizen petitions, explanations, promises, etc."
+    ],
+    "amounts": ["every sum / quantity / percentage / deadline mentioned, verbatim, e.g. '359.000 lei de la Consiliul Județean', '1% pe lună', 'termen 31 martie'"],
+    "people": [
+      { "name": "person's name as heard", "role": "their role exactly as stated: primar / viceprimar / consilier / cetățean / contabilă / membru titular / membru supleant / ...", "what": "what they did or said regarding this item" }
+    ],
+    "decision": "what was decided (aprobat / respins / amânat / doar discutat), with any nuance",
+    "vote": { "pentru": N, "impotriva": N, "abtineri": N }
+  }
+]
+
+Rules:
+- NEVER omit a sub-point to be concise. If in doubt, include it. A long "points"
+  list is good.
+- Copy numbers, sums, percentages, dates and names EXACTLY as stated. Do not
+  round, merge, or normalize them.
+- For commissions/committees, record each member with the EXACT role stated
+  (titular vs supleant). Do not guess who is on a commission.
+- "vote" only if explicit vote counts are stated; otherwise "vote": null. If
+  only "pentru" is stated (unanimous), set the others to 0. Never invent numbers.
+- Do NOT invent anything not present in the transcript. Unknown text fields = "".
+- Output strictly valid JSON, field values in Romanian.

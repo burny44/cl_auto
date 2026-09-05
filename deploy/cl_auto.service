@@ -1,0 +1,13 @@
+[Unit]
+Description=cl_auto — council transcript -> Gemini -> email
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/Projects/cl_auto
+# Make sure a user-installed yt-dlp (~/.local/bin) is found.
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+# Let notify-send reach the desktop session bus (for the start/end notifications).
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/%U/bus
+ExecStart=/usr/bin/python3 %h/Projects/cl_auto/main.py
