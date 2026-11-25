@@ -62,10 +62,9 @@ def _call(instructions: str, user_text: str, models: list[str], log=print) -> tu
             message = str(exc).lower()
             # A per-day free-tier cap won't recover in seconds: fail fast.
             daily_cap = "perday" in message or "requestsperday" in message
-            rate_limited = any(
-                token in message
-                for token in ("429", "exhausted", "unavailable", "overloaded", "rate")
-            )
+            # Only a temporary per-minute limit / overload on EVERY model is
+            # worth waiting for (not "no credit", bad key, refusal, ...).
+            rate_limited = isinstance(exc, ai.GeminiQuotaError)
             if rate_limited and not daily_cap and attempt < QUOTA_RETRIES:
                 log(f"  rate-limited, waiting {QUOTA_BACKOFF_SECONDS}s "
                     f"(attempt {attempt}/{QUOTA_RETRIES})…")
@@ -194,3 +193,12 @@ def learn_references(
     summary = ", ".join(f"{len(v)} {k}" for k, v in added.items())
     log(f"  new entries added for review: {summary} ({model_used}).")
     return added
+
+
+def _safe_json(text: str):
+    """Best-effort JSON parse; returns the parsed object or None."""
+
+    try:
+        return json.loads(text)
+    except (json.JSONDecodeError, TypeError):
+        return None

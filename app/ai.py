@@ -18,8 +18,8 @@ FINAL_DIR = os.path.join(PROJECT_ROOT, "final")
 API_KEY_FILES = ("gemini_api_key.txt", ".gemini_api_key")
 
 # Default model names, used when the environment doesn't override them.
-DEFAULT_PRIMARY_MODEL = "gemini-3.1-pro-preview"
-DEFAULT_FALLBACK_MODELS = "gemini-3.5-flash"
+DEFAULT_PRIMARY_MODEL = "claude-opus-5-5"
+DEFAULT_FALLBACK_MODELS = "gemini-3.1-pro-preview,gemini-3.5-flash"
 
 
 def primary_model() -> str:
@@ -58,7 +58,12 @@ _API_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:gene
 # starting with "claude" is routed here instead of to Gemini.
 _ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages"
 _ANTHROPIC_VERSION = "2023-06-01"
-_ANTHROPIC_MAX_TOKENS = 16384
+# Opus 5.5 always thinks, and thinking tokens count against max_tokens, so leave
+# room for a long post/JSON on top of the reasoning.
+_ANTHROPIC_MAX_TOKENS = 32000
+# On a safety refusal, let the API retry the request on a suitable fallback
+# Claude model inside the same call (server-side fallback, beta).
+_ANTHROPIC_BETA = "server-side-fallback-2026-07-01"
 
 
 def is_anthropic_model(model: str) -> bool:
@@ -107,7 +112,7 @@ def process_text(
     instructions: str,
     model: str | None = None,
     api_key: str | None = None,
-    timeout: int = 300,
+    timeout: int = 600,
 ) -> str:
     """Send `transcript` to a single model and return the result.
 
@@ -165,6 +170,7 @@ def _anthropic_generate(
     body = {
         "model": model,
         "max_tokens": _ANTHROPIC_MAX_TOKENS,
+        "fallbacks": "default",
         "system": instructions,
         "messages": [{"role": "user", "content": transcript}],
     }
@@ -175,6 +181,7 @@ def _anthropic_generate(
             "Content-Type": "application/json",
             "x-api-key": api_key,
             "anthropic-version": _ANTHROPIC_VERSION,
+            "anthropic-beta": _ANTHROPIC_BETA,
         },
         method="POST",
     )
@@ -196,6 +203,19 @@ def _anthropic_generate(
 
 
 def _extract_anthropic_text(payload: dict) -> str:
+    stop = payload.get("stop_reason")
+    if stop == "refusal":
+        details = payload.get("stop_details") or {}
+        raise GeminiError(
+            "Anthropic declined the request (refusal"
+            + (f", {details.get('category')}" if details.get("category") else "")
+            + ")."
+        )
+    if stop == "max_tokens":
+        # A truncated post/JSON is worse than trying the next model.
+        raise GeminiError(
+            f"Anthropic response was cut off at max_tokens ({_ANTHROPIC_MAX_TOKENS})."
+        )
     blocks = payload.get("content") or []
     text = "".join(
         block.get("text", "") for block in blocks if block.get("type") == "text"
@@ -214,7 +234,7 @@ def process_with_fallback(
     instructions: str,
     models: list[str] | None = None,
     api_key: str | None = None,
-    timeout: int = 300,
+    timeout: int = 600,
 ) -> tuple[str, str]:
     """Try each model in order, falling back on rate-limit/overload errors.
 
@@ -228,9 +248,8 @@ def process_with_fallback(
     # Don't pre-read a key here: each model may use a different provider
     # (Gemini vs Anthropic). process_text resolves the right key per model.
 
-    last_error: GeminiError | None = None
-    for index, model in enumerate(models):
-        is_last = index == len(models) - 1
+    errors: list[tuple[str, GeminiError]] = []
+    for model in models:
         try:
             text = process_text(
                 transcript,
@@ -240,22 +259,23 @@ def process_with_fallback(
                 timeout=timeout,
             )
             return text, model
-        except GeminiQuotaError as exc:
-            # Rate-limited / overloaded: always worth trying the next model.
-            last_error = exc
-            continue
         except GeminiError as exc:
-            # Other failures (e.g. a flaky preview-model alias returning 404).
-            # Fall back to the next model too, but surface the error if this was
-            # already the last model to try.
-            last_error = exc
-            if is_last:
-                raise
+            # Rate limit, no credit, bad key, flaky preview alias, refusal...:
+            # always worth trying the next model. Remember why this one failed.
+            errors.append((model, exc))
             continue
 
-    raise GeminiError(
-        "All Gemini models failed.\n\n" + (str(last_error) if last_error else "")
-    )
+    summary = "\n".join(f"- {model}: {_short(exc)}" for model, exc in errors)
+    only_quota = bool(errors) and all(isinstance(e, GeminiQuotaError) for _, e in errors)
+    error_cls = GeminiQuotaError if only_quota else GeminiError
+    raise error_cls("All AI models failed:\n" + summary)
+
+
+def _short(exc: Exception, limit: int = 400) -> str:
+    """One-line, length-capped version of an error message."""
+
+    text = " ".join(str(exc).split())
+    return text if len(text) <= limit else text[:limit] + "…"
 
 
 def _extract_text(payload: dict) -> str:

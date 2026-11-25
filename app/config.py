@@ -20,8 +20,10 @@ CONFIG_FILES = ("config.env", ".env")
 def load_config() -> None:
     """Load KEY=VALUE pairs from the config file(s) into os.environ.
 
-    Existing environment variables always win, so you can override any setting
-    at runtime. Called once at startup.
+    Existing non-empty environment variables win, so you can override any
+    setting at runtime. A variable that is set but EMPTY (e.g. an inherited
+    `ANTHROPIC_API_KEY=`) does not count, so the config.env value is used.
+    Called once at startup.
     """
 
     for name in CONFIG_FILES:
@@ -36,7 +38,7 @@ def load_config() -> None:
                 key, _, value = line.partition("=")
                 key = key.strip()
                 value = value.strip().strip('"').strip("'")
-                if key and key not in os.environ:
+                if key and not os.environ.get(key, "").strip():
                     os.environ[key] = value
 
 

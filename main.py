@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""cl_auto — unattended transcript → Gemini → email pipeline.
+"""cl_auto — unattended transcript → AI (Claude/Gemini) → email pipeline.
 
 On each run: latest council video → transcript → staged prompts → email.
 Already-processed videos are skipped (state.json). Config is in config.env.
@@ -124,23 +124,23 @@ def run_once(args: argparse.Namespace) -> int:
     kind = "auto-generated" if transcript.auto_generated else "manual"
     log(f"Saved {kind} transcript -> {transcript_path}")
 
-    # 2) Gemini processing
+    # 2) AI processing
     chain = ai.default_models()
-    log(f"Processing with Gemini (models tried in order: {', '.join(chain)}).")
+    log(f"Processing with AI (models tried in order: {', '.join(chain)}).")
     meeting_date = ai.date_from_transcript_name(transcript_path)
     try:
         result, model_used, learned = pipeline.process_transcript(
             transcript.text, meeting_date, log=log
         )
     except ai.GeminiError as exc:
-        log(f"ERROR processing with Gemini: {exc}")
-        _notify_error(args, "procesarea cu Gemini a eșuat", exc)
+        log(f"ERROR processing with AI: {exc}")
+        _notify_error(args, "procesarea cu AI a eșuat", exc)
         return 1
 
     final_path = ai.save_final(result, transcript_path)
     if model_used != chain[0]:
         log(f"NOTE: primary model unavailable; used fallback '{model_used}'.")
-    log(f"Saved Gemini output ({model_used}) -> {final_path}")
+    log(f"Saved AI output ({model_used}) -> {final_path}")
 
     # 3) Email
     if args.no_email:
@@ -179,7 +179,7 @@ def _send_result_email(
     subject = f"Rezumat ședință CL — {date_label} [{model_used}]"
     body = (
         f"{video.title}\n{video.url}\n"
-        f"(Procesat cu Gemini: {model_used})\n"
+        f"(Procesat cu: {model_used})\n"
         f"{'-' * 60}\n\n"
         f"{result}\n"
     )
@@ -228,7 +228,7 @@ def _notify_error(args: argparse.Namespace, what: str, exc: Exception) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Headless: latest YouTube transcript -> Gemini -> email."
+        description="Headless: latest YouTube transcript -> AI -> email."
     )
     parser.add_argument("--channel", default=DEFAULT_CHANNEL,
                         help=f"Channel handle or URL (default: {DEFAULT_CHANNEL}).")
@@ -242,7 +242,7 @@ def build_parser() -> argparse.ArgumentParser:
                              "(case-/accent-insensitive) regex. Default keeps "
                              "council sessions only. Pass '' to disable.")
     parser.add_argument("--primary-model", default=None,
-                        help="Override the primary Gemini model "
+                        help="Override the primary AI model "
                              "(default: GEMINI_MODEL from config.env).")
     parser.add_argument("--fallback-model", default=None,
                         help="Override the fallback model(s), comma-separated "

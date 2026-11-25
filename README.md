@@ -39,12 +39,13 @@ git clone <this-repo> && cd cl_auto
 Create a gitignored `config.env` in the project root:
 
 ```env
-GEMINI_API_KEY=...
-# Optional last-resort fallback (models named claude-* use this):
-# ANTHROPIC_API_KEY=...
+ANTHROPIC_API_KEY=sk-ant-api03-...   # used by models named claude-*
+GEMINI_API_KEY=...                   # used by the gemini-* fallbacks
 
-GEMINI_MODEL=gemini-3.1-pro-preview
-GEMINI_FALLBACK_MODEL=gemini-3.5-flash,gemini-3-flash-preview,claude-sonnet-4-6
+# First model tried, then each fallback in order (names are historical:
+# any claude-* model is routed to Anthropic automatically).
+GEMINI_MODEL=claude-opus-5-5
+GEMINI_FALLBACK_MODEL=gemini-3.1-pro-preview,gemini-3.5-flash,gemini-3-flash-preview
 
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587

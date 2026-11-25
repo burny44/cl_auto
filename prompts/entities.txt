@@ -18,6 +18,7 @@ Return ONLY a JSON object (no prose, no markdown, no code fences):
   "locations": [
     {
       "nume": "location name, e.g. 'strada Tudor Vladimirescu', 'blocul 13', 'grădinița din Prăjani', 'piața centrală'",
+      "varianta_auzita": "other forms heard in the facts, ';'-separated ('' if none)",
       "zona": "Slănic | Prăjani | Groșani | '' if not clear from the facts",
       "tip": "stradă / bloc / școală / grădiniță / zonă / pod / râu / ...",
       "context": "very short note on why it was mentioned"
@@ -42,6 +43,9 @@ Rules:
   companies go under "organizations", not here. Places outside the
   town (other communes, the county, Bucharest) are allowed only if they are
   relevant to a decision; set "zona" to "" for them.
+- "nume" is ONE name only — never "X / Y". If the transcript is ambiguous
+  between spellings, put your best guess in "nume" and the other heard forms in
+  "varianta_auzita", separated by ";".
 - SKIP anything that already appears in the known list, including obvious
   spelling variants of a known entry (those are handled separately).
 - Organizations: companies, public institutions and operators referred to by
