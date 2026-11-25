@@ -15,3 +15,7 @@ __pycache__/
 *.py[cod]
 .venv/
 venv/
+
+# LibreOffice / Excel lock files
+.~lock.*#
+~$*
