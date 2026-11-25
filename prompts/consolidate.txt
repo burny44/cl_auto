@@ -26,7 +26,7 @@ Rules:
 - Preserve every distinct agenda item — do not drop topics.
 - Keep "vote" only when an explicit vote count exists in the input; otherwise
   null. Never invent or average numbers.
-- Correct people's names using the council reference list below. Do not invent
-  names that are not on the list.
+- Correct people's names and place names (streets, blocks, villages)
+  and organizations (companies, institutions, operators) using the reference lists below. Do not invent names.
 - Keep the natural order in which items were discussed where possible.
 - Do NOT add commentary or new facts. Output strictly valid JSON, in Romanian.

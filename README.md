@@ -107,7 +107,8 @@ Day-to-day commands: [CHEATSHEET.md](CHEATSHEET.md).
 ```
 main.py            entry point
 config.env         secrets (gitignored)
-prompts/           extract / compose / consolidate / council names
+prompts/           extract / consolidate / compose / entities / example_post
+reference/         people / locations / organizations .csv (edit in Excel; verificat = da/nu)
 deploy/            systemd user units
 app/               youtube, pipeline, Gemini/Anthropic, SMTP
 transcripts/       trs_<date>.txt

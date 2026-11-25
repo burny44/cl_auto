@@ -22,7 +22,7 @@ import os
 import re
 import time
 
-from . import ai
+from . import ai, references
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROMPTS_DIR = os.path.join(PROJECT_ROOT, "prompts")
@@ -109,13 +109,25 @@ def process_transcript(
     transcript: str,
     meeting_date: str,
     log=print,
-) -> tuple[str, str]:
-    """Run extract -> consolidate -> compose. Returns (post_text, compose_model)."""
+) -> tuple[str, str, dict[str, list[str]]]:
+    """Run extract -> consolidate -> compose -> learn.
 
-    extract_instr = _read_prompt("extract.txt")
-    council = _read_prompt("council.txt")
+    Returns (post_text, compose_model, learned), where `learned` maps each
+    reference table ("people", "locations", "organizations") to the names that
+    were added to reference/*.csv for manual review.
+    """
+
+    council = references.reference_text()
+    extract_instr = _read_prompt("extract.txt") + "\n\n" + council
     consolidate_instr = _read_prompt("consolidate.txt") + "\n\n" + council
-    compose_instr = _read_prompt("compose.txt") + "\n\n" + council
+    compose_instr = (
+        _read_prompt("compose.txt")
+        + "\n\n" + council
+        + "\n\n=== STRUCTURE EXAMPLE (FORMAT ONLY — a different meeting; do NOT "
+        "reuse any of its facts, numbers, names or sentences) ===\n"
+        + _read_prompt("example_post.txt")
+        + "\n=== END OF STRUCTURE EXAMPLE ==="
+    )
 
     models = _models()
 
@@ -151,13 +163,34 @@ def process_transcript(
     post, compose_model = _call(compose_instr, compose_input, models, log=log)
     log(f"  composed ({compose_model}).")
 
-    return post.strip(), compose_model
+    learned = learn_references(compose_input, meeting_date, models, log=log)
+
+    return post.strip(), compose_model, learned
 
 
-def _safe_json(text: str):
-    """Best-effort JSON parse; returns the parsed object or None."""
+def learn_references(
+    facts_json: str, meeting_date: str, models: list[str], log=print
+) -> dict[str, list[str]]:
+    """Ask the model for people/locations/organizations not yet in
+    reference/*.csv and append them with verificat = "nu". Never fails the run:
+    errors are only logged."""
 
+    log("Pipeline: looking for new people / locations / organizations…")
     try:
-        return json.loads(text)
-    except (json.JSONDecodeError, TypeError):
-        return None
+        user_text = json.dumps(
+            {"known": json.loads(references.known_names_json()),
+             "facts": json.loads(facts_json)},
+            ensure_ascii=False,
+        )
+        raw, model_used = _call(_read_prompt("entities.txt"), user_text, models, log=log)
+        candidates = _safe_json(_strip_code_fences(raw))
+        if not isinstance(candidates, dict):
+            log("  could not parse the model's answer; skipped.")
+            return {}
+        added = references.add_candidates(candidates, meeting_date)
+    except Exception as exc:  # learning is a bonus; never break the post
+        log(f"  skipped ({exc}).")
+        return {}
+    summary = ", ".join(f"{len(v)} {k}" for k, v in added.items())
+    log(f"  new entries added for review: {summary} ({model_used}).")
+    return added

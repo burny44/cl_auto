@@ -1,0 +1,51 @@
+You receive the extracted facts (JSON) of a Romanian city council meeting in
+Slănic (Prahova), plus the list of people, locations and organizations that are ALREADY KNOWN.
+
+Your job: list the people, locations and organizations mentioned in the facts that are NOT
+already known, so a human can review them and add them to the reference lists.
+
+Return ONLY a JSON object (no prose, no markdown, no code fences):
+
+{
+  "people": [
+    {
+      "nume": "best guess of the full, correctly spelled name (Nume Prenume)",
+      "varianta_auzita": "the name exactly as it appears in the facts",
+      "functie": "role as stated: consilier / secretar / contabilă / cetățean / angajat <instituție> / diriginte de șantier / ...",
+      "context": "very short note on why they appeared in the meeting"
+    }
+  ],
+  "locations": [
+    {
+      "nume": "location name, e.g. 'strada Tudor Vladimirescu', 'blocul 13', 'grădinița din Prăjani', 'piața centrală'",
+      "zona": "Slănic | Prăjani | Groșani | '' if not clear from the facts",
+      "tip": "stradă / bloc / școală / grădiniță / zonă / pod / râu / ...",
+      "context": "very short note on why it was mentioned"
+    }
+  ],
+  "organizations": [
+    {
+      "nume": "correct name of the company / institution, e.g. 'Transurban Serv', 'Hidro Prahova', 'Inspectoratul Școlar Județean Prahova', 'Prefectura Prahova'",
+      "varianta_auzita": "the name exactly as it appears in the facts",
+      "tip": "firmă locală / operator regional / instituție publică / firmă executantă / ONG / ...",
+      "relatie": "relation to the town as stated in the facts, e.g. 'subordonată Consiliului Local', 'execută lucrările de canalizare'; '' if not stated",
+      "context": "very short note on why it was mentioned"
+    }
+  ]
+}
+
+Rules:
+- Only concrete, named people (with at least a surname) — not "doamna secretar"
+  without a name, not generic roles.
+- Only concrete local places (physical locations): streets, blocks, schools,
+  kindergartens, neighborhoods, bridges, rivers, landmarks. Institutions and
+  companies go under "organizations", not here. Places outside the
+  town (other communes, the county, Bucharest) are allowed only if they are
+  relevant to a decision; set "zona" to "" for them.
+- SKIP anything that already appears in the known list, including obvious
+  spelling variants of a known entry (those are handled separately).
+- Organizations: companies, public institutions and operators referred to by
+  name (not generic words like "firma" or "primăria" alone). The town hall and
+  the local council themselves are not entries.
+- Do NOT invent anything not present in the facts. If nothing is new, return
+  {"people": [], "locations": [], "organizations": []}.

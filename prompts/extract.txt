@@ -39,4 +39,8 @@ Rules:
 - "vote" only if explicit vote counts are stated; otherwise "vote": null. If
   only "pentru" is stated (unanimous), set the others to 0. Never invent numbers.
 - Do NOT invent anything not present in the transcript. Unknown text fields = "".
+- Use the reference lists below to recognise and correctly spell people and
+  places (streets, blocks, villages) and organizations (companies,
+  institutions, operators) that the speech-to-text
+  garbled. Keep names that are not on the lists exactly as heard.
 - Output strictly valid JSON, field values in Romanian.

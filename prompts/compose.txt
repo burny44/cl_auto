@@ -42,14 +42,19 @@ Produce the post with exactly this structure:
    routine/procedural meeting), fall back to:
    "📋 Ședința Consiliului Local din [meeting_date] – iată ce s-a discutat:"
 
-2. A second line stating (plain text, no markdown):
-   "⚠️ Acest text a fost procesat automat, din transcriptul video al ședinței de
+2. A second line stating (plain text, no emoji, no markdown):
+   "Acest text a fost procesat automat, din transcriptul video al ședinței de
    pe YouTube, folosind un model AI."
+
+   Directly after it, a separator line consisting of exactly:
+   "───────────────────────"
 
 3. A short "key points" section, introduced by the line:
    "🔑 Pe scurt – cele mai importante decizii:"
-   Followed by 3 to 5 bullets (•), each a single short sentence — no votes, no
-   sub-points. These are the MOST IMPORTANT items of the meeting.
+   Followed by 3 to 5 lines, each a single plain sentence (NO bullet character
+   at the start) ending with ONE emoji that matches the topic (the same emoji
+   used for that item's title in the detailed section). No votes, no sub-points.
+   These are the MOST IMPORTANT items of the meeting.
 
    Decide importance from the facts using these criteria (in this order):
      a. Money / budget impact — items with large sums or that shape the budget.
@@ -63,45 +68,75 @@ Produce the post with exactly this structure:
    Pick the 3–5 items that score highest across these. Phrase each as a plain,
    concrete takeaway a citizen would care about. Do not inflate routine/formal
    items (e.g. approving previous minutes) unless nothing else qualifies.
-   Leave two blank lines after this section.
+   After the last key point, leave ONE blank line, then the separator line
+   "───────────────────────".
 
-4. A sub-heading line that introduces the full list, exactly:
+4. Right after the separator, the sub-heading line, exactly:
    "📋 Secțiunea detaliată:"
-   Leave a blank line after it, before the first bullet below.
+   Followed by ONE blank line.
 
-5.    One bullet (•) per agenda item, in plain, simple Romanian any citizen
-   understands (avoid jargon). Start each bullet with the topic. Mention
-   "Proiectul nr. X" ONLY when "project_number" is a non-empty value; if
-   "project_number" is "", do NOT invent or add any number to the bullet
-   (e.g. minutes approvals and the "Diverse" section have no project number).
-   Use emojis sparingly to separate topics visually.
+5. The detailed section: one block per agenda item (all items EXCEPT the
+   "Diverse / întrebări / interpelări" ones, which go in section 6).
 
-   Under each bullet, add one sub-line per relevant sub-point from "points",
-   each starting with a plain em dash (—) indented with two spaces. Mention
-   exact sums, percentages, deadlines and the people/roles involved where the
-   facts provide them. Name commission members with their exact role
+   Each block starts with a title line: ONE topic emoji, a space, then
+   "Proiectul nr. X – [topic]" when "project_number" is non-empty, or just
+   "[topic]" when "project_number" is "" (never invent a number; e.g. minutes
+   approvals have no project number).
+
+   Under the title, one line per relevant sub-point from "points": a complete,
+   plain sentence in simple Romanian any citizen understands (avoid jargon).
+   NO bullet characters, NO dashes, NO indentation at the start of these lines.
+   Fold in the exact sums, percentages, deadlines and the people/roles involved
+   where the facts provide them. Name commission members with their exact role
    (titular / supleant).
 
-   For every item whose "vote" is present, add a final sub-line:
-   "🗳️ Vot: [pentru] pentru, [impotriva] împotrivă, [abțineri] abțineri."
-   If "vote" is null, omit this sub-line entirely.
+   End each block with the outcome written as a normal sentence: the commission
+   avizes (if present in the facts) and the decision / vote, e.g.
+   "Proiectul a fost aprobat în unanimitate." or
+   "Proiectul a fost aprobat cu 9 voturi pentru, 2 împotrivă și 1 abținere."
+   Only state vote numbers that exist in "vote"; if "vote" is null, state just
+   the decision from "decision" (if any), without numbers.
+
+   Between two consecutive blocks put a line containing exactly "~ ~ ~"
+   (no blank lines around it).
+
+6. If there are "Diverse / întrebări / interpelări" items, after the last
+   detailed block put the separator line "───────────────────────", then the
+   heading line exactly:
+   "💬 Diverse / întrebări / interpelări"
+   Then one block per person / interpellation, WITHOUT a title line: start
+   directly with who raised it (e.g. "Consilierul X a ridicat ...",
+   "Domnul Y a semnalat ..."), then one plain sentence per line with what was
+   asked and what was answered. Use "Același consilier ..." / "Același domn ..."
+   for follow-up lines from the same person. Separate blocks with a line
+   containing exactly "~ ~ ~". If there are no such items, omit this section.
 
 Formatting rules:
 - Output ONLY the Facebook post text (no transcript, no JSON, no explanations).
 - Romanian throughout. Neutral, informative tone — not promotional, not political.
 - No Markdown at all: no asterisks, no bold/italics, no markdown bullets.
   Use only plain Unicode characters.
-- Use the • character for top-level bullets and the — character for sub-points
-  (indented with two spaces).
-- Separate each agenda item with a blank line.
+- NO bullet characters (•, -, —, *) at the start of any line. Every content line
+  is a plain sentence.
+- The ONLY separators are: the line "───────────────────────" between major
+  sections (after the disclaimer, before "📋 Secțiunea detaliată:", before
+  "💬 Diverse / întrebări / interpelări") and the line "~ ~ ~" between items
+  inside a section. Blank lines appear ONLY where specified above (one after the
+  last key point, one after "📋 Secțiunea detaliată:").
 - Names: every council member / viceprimar / primar named in the facts MUST be
-  written exactly as on the council reference list below. If a name in the facts
+  written exactly as on the reference lists below. If a name in the facts
   is a close phonetic or partial match to one on the list, replace it with the
   correct full name from the list. If a person is described as a council member
   (e.g. on a commission) but their name does not match anyone on the list,
   prefer the closest list match rather than keeping an off-list surname. Never
   invent a name that is not on the list, and never change a person's stated role
   (titular / supleant / etc.).
+- Place names (streets, blocks, schools, villages Prăjani / Groșani, etc.) and
+  organization names (companies, institutions, operators) must
+  likewise be written as on the reference lists when they clearly match one.
 - Do NOT fabricate item numbers. Write "Proiectul nr. X" only when
-  "project_number" is non-empty; otherwise just use the topic as the bullet
-  title (e.g. for procese-verbale, interpelări, sau secțiunea Diverse).
+  "project_number" is non-empty.
+- A complete STRUCTURE EXAMPLE of a finished post is given at the end of these
+  instructions. Copy its layout, separators, spacing and style exactly — but it
+  belongs to a DIFFERENT meeting: never copy any fact, number, name, topic or
+  sentence from it into your post. Your content comes ONLY from the facts JSON.

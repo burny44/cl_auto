@@ -20,7 +20,7 @@ import sys
 import traceback
 from datetime import datetime
 
-from app import ai, config, email_sender, pipeline
+from app import ai, config, email_sender, pipeline, references
 from app.youtube import (
     DEFAULT_TITLE_FILTER,
     TRANSCRIPTS_DIR,
@@ -129,7 +129,7 @@ def run_once(args: argparse.Namespace) -> int:
     log(f"Processing with Gemini (models tried in order: {', '.join(chain)}).")
     meeting_date = ai.date_from_transcript_name(transcript_path)
     try:
-        result, model_used = pipeline.process_transcript(
+        result, model_used, learned = pipeline.process_transcript(
             transcript.text, meeting_date, log=log
         )
     except ai.GeminiError as exc:
@@ -146,7 +146,9 @@ def run_once(args: argparse.Namespace) -> int:
     if args.no_email:
         log("Skipping email (--no-email).")
     else:
-        _send_result_email(args, video, result, model_used, transcript_path, final_path)
+        _send_result_email(
+            args, video, result, model_used, transcript_path, final_path, learned
+        )
 
     # 4) Remember what we processed so we don't repeat it next run.
     state["last_video_id"] = video.video_id
@@ -171,6 +173,7 @@ def _send_result_email(
     model_used: str,
     transcript_path: str,
     final_path: str,
+    learned: dict[str, list[str]] | None = None,
 ) -> None:
     date_label = transcript_filename(video).removeprefix("trs_").removesuffix(".txt")
     subject = f"Rezumat ședință CL — {date_label} [{model_used}]"
@@ -180,6 +183,16 @@ def _send_result_email(
         f"{'-' * 60}\n\n"
         f"{result}\n"
     )
+    learned = {k: v for k, v in (learned or {}).items() if v}
+    if learned:
+        body += (
+            f"\n{'-' * 60}\n"
+            "De verificat în reference/ (adăugate cu verificat = nu):\n"
+        )
+        labels = references.labels()
+        for key, names in learned.items():
+            label, filename = labels.get(key, (key, f"{key}.csv"))
+            body += f"{label} ({filename}): " + ", ".join(names) + "\n"
     attachments = []
     if not args.no_attachments:
         attachments = [transcript_path, final_path]
