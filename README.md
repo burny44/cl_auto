@@ -44,7 +44,7 @@ GEMINI_API_KEY=...                   # used by the gemini-* fallbacks
 
 # First model tried, then each fallback in order (names are historical:
 # any claude-* model is routed to Anthropic automatically).
-GEMINI_MODEL=claude-opus-5-5
+GEMINI_MODEL=claude-sonnet-5-5
 GEMINI_FALLBACK_MODEL=gemini-3.1-pro-preview,gemini-3.5-flash,gemini-3-flash-preview
 
 SMTP_HOST=smtp.gmail.com

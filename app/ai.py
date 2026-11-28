@@ -18,7 +18,7 @@ FINAL_DIR = os.path.join(PROJECT_ROOT, "final")
 API_KEY_FILES = ("gemini_api_key.txt", ".gemini_api_key")
 
 # Default model names, used when the environment doesn't override them.
-DEFAULT_PRIMARY_MODEL = "claude-opus-5-5"
+DEFAULT_PRIMARY_MODEL = "claude-sonnet-5-5"
 DEFAULT_FALLBACK_MODELS = "gemini-3.1-pro-preview,gemini-3.5-flash"
 
 
@@ -58,7 +58,7 @@ _API_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:gene
 # starting with "claude" is routed here instead of to Gemini.
 _ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages"
 _ANTHROPIC_VERSION = "2023-06-01"
-# Opus 5.5 always thinks, and thinking tokens count against max_tokens, so leave
+# Current Claude models think by default, and thinking tokens count against max_tokens, so leave
 # room for a long post/JSON on top of the reasoning.
 _ANTHROPIC_MAX_TOKENS = 32000
 # On a safety refusal, let the API retry the request on a suitable fallback
